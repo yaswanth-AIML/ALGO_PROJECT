@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AlgoBench — interactive sorting algorithm visualizer and benchmark suite">
+    <title>AlgoBench — Sorting Algorithm Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="navbar glass">
+            <div class="navbar-brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 18h16M6 14h12M8 10h8M10 6h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>AlgoBench</h1>
+                    <p>Sorting Algorithm Visualizer &amp; Benchmark Suite</p>
+                </div>
+            </div>
+            <nav class="navbar-links" role="tablist" aria-label="Main views">
+                <button class="nav-link active" data-view="visualizer" role="tab" aria-selected="true">Visualizer</button>
+                <button class="nav-link" data-view="benchmark" role="tab" aria-selected="false">Benchmark</button>
+            </nav>
+        </header>
+
+        <div class="layout">
+            <aside class="sidebar glass" aria-label="Controls">
+                <section class="panel-section">
+                    <h2>Controls</h2>
+
+                    <div class="form-group">
+                        <label for="algorithm-select">Algorithm</label>
+                        <select id="algorithm-select" aria-describedby="algo-description"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="size-input">Array Size <span id="size-value" class="range-value">30</span></label>
+                        <input type="range" id="size-input" min="5" max="100" value="30" aria-valuemin="5" aria-valuemax="100" aria-valuenow="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type-select">Array Type</label>
+                        <select id="type-select"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="speed-input">Animation Speed <span id="speed-value" class="range-value">5</span></label>
+                        <input type="range" id="speed-input" min="1" max="10" value="5" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5">
+                    </div>
+
+                    <div class="button-grid">
+                        <button id="btn-generate" class="btn btn-secondary" type="button">Generate</button>
+                        <button id="btn-sort" class="btn btn-primary" type="button">Sort</button>
+                        <button id="btn-benchmark" class="btn btn-accent" type="button">Compare All</button>
+                        <button id="btn-pause" class="btn btn-ghost" type="button" disabled>Pause</button>
+                        <button id="btn-resume" class="btn btn-ghost" type="button" disabled>Resume</button>
+                        <button id="btn-prev" class="btn btn-ghost" type="button" disabled aria-label="Previous step">Prev</button>
+                        <button id="btn-next" class="btn btn-ghost" type="button" disabled aria-label="Next step">Next</button>
+                        <button id="btn-reset" class="btn btn-ghost" type="button">Reset</button>
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h2>About</h2>
+                    <p id="algo-description" class="description-text">Select an algorithm to view details.</p>
+                </section>
+
+                <section class="panel-section complexity-panel">
+                    <h2>Complexity</h2>
+                    <div class="complexity-grid">
+                        <div class="complexity-item"><span class="label">Best Case</span><span id="cx-best" class="value">—</span></div>
+                        <div class="complexity-item"><span class="label">Average Case</span><span id="cx-average" class="value">—</span></div>
+                        <div class="complexity-item"><span class="label">Worst Case</span><span id="cx-worst" class="value">—</span></div>
+                        <div class="complexity-item"><span class="label">Space</span><span id="cx-space" class="value">—</span></div>
+                        <div class="complexity-item"><span class="label">Stable</span><span id="cx-stable" class="value badge">—</span></div>
+                        <div class="complexity-item"><span class="label">In Place</span><span id="cx-inplace" class="value badge">—</span></div>
+                    </div>
+                </section>
+            </aside>
+
+            <main class="main-content">
+                <section id="view-visualizer" class="view active" role="tabpanel">
+                    <div class="stats-row" aria-live="polite" aria-atomic="true">
+                        <div class="stat-card glass"><span class="stat-label">Current Step</span><span id="stat-step" class="stat-value">0 / 0</span></div>
+                        <div class="stat-card glass"><span class="stat-label">Comparisons</span><span id="stat-comparisons" class="stat-value">0</span></div>
+                        <div class="stat-card glass"><span class="stat-label">Swaps / Writes</span><span id="stat-swaps" class="stat-value">0</span></div>
+                        <div class="stat-card glass"><span class="stat-label">Execution Time</span><span id="stat-time" class="stat-value">0 ms</span></div>
+                    </div>
+
+                    <div class="visualizer-card glass">
+                        <div class="card-header">
+                            <h2>Array Visualization</h2>
+                            <span id="array-info" class="muted">Generate an array to begin</span>
+                        </div>
+                        <div id="bars-container" class="bars-container" role="img" aria-label="Sorting visualization"></div>
+                        <div class="legend">
+                            <span class="legend-item"><span class="dot compare"></span> Compared</span>
+                            <span class="legend-item"><span class="dot swap"></span> Swapped</span>
+                            <span class="legend-item"><span class="dot sorted"></span> Sorted</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-benchmark" class="view" role="tabpanel">
+                    <div class="benchmark-header glass">
+                        <div>
+                            <h2>Algorithm Comparison</h2>
+                            <p id="benchmark-subtitle" class="muted">Run "Compare All" to benchmark every algorithm</p>
+                        </div>
+                        <div class="export-actions">
+                            <button id="btn-export-csv" class="btn btn-secondary" type="button">Export CSV</button>
+                            <button id="btn-export-chart" class="btn btn-secondary" type="button">Export Chart</button>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card glass"><h3>Execution Time (ms)</h3><div class="chart-wrap"><canvas id="chart-time"></canvas></div></div>
+                        <div class="chart-card glass"><h3>Comparisons</h3><div class="chart-wrap"><canvas id="chart-comparisons"></canvas></div></div>
+                        <div class="chart-card glass"><h3>Swaps / Writes</h3><div class="chart-wrap"><canvas id="chart-swaps"></canvas></div></div>
+                    </div>
+
+                    <div class="benchmark-table-card glass">
+                        <h3>Detailed Results</h3>
+                        <div class="table-wrapper">
+                            <table id="benchmark-table">
+                                <thead>
+                                    <tr>
+                                        <th>Algorithm</th>
+                                        <th>Time (ms)</th>
+                                        <th>Comparisons</th>
+                                        <th>Swaps</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="loading-text">Processing...</p>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
